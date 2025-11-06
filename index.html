@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Absensi Mahasiswa Universitas</title>
+    <link rel="stylesheet" href="Sytle.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Sistem Absensi Online</h1>
+            <p>Mahasiswa Kelas C</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('login')">Login</button>
+            <button class="tab" onclick="showTab('absensi')">Absensi</button>
+            <button class="tab" onclick="showTab('admin')">Admin Panel</button>
+        </div>
+
+        <div id="login" class="tab-content active">
+            <div class="time-display">
+                <div id="currentTime"></div>
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="nim">NIM:</label>
+                    <input type="text" id="nim" name="nim" required placeholder="Masukkan NIM Anda">
+                </div>
+                <div class="form-group">
+                    <label for="nama">Nama Lengkap:</label>
+                    <input type="text" id="nama" name="nama" required placeholder="Masukkan Nama Lengkap">
+                </div>
+                <button type="submit" class="btn">Login</button>
+            </form>
+
+            <div id="loginAlert"></div>
+        </div>
+
+        <div id="absensi" class="tab-content">
+            <div class="time-display">
+                <div id="absensiTime"></div>
+            </div>
+
+            <div id="studentInfo" style="display: none;">
+                <div class="form-group">
+                    <label for="matakuliah">Mata Kuliah:</label>
+                    <select id="matakuliah" name="matakuliah">
+                        <option value="">Pilih Mata Kuliah</option>
+                        <option value="Pemrograman Web">Pemrograman Web</option>
+                        <option value="Basis Data">Basis Data</option>
+                        <option value="Sistem Informasi">Sistem Informasi</option>
+                        <option value="Algoritma">Algoritma</option>
+                        <option value="Jaringan Komputer">Jaringan Komputer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="keterangan">Keterangan (Opsional):</label>
+                    <input type="text" id="keterangan" name="keterangan" placeholder="Masukkan keterangan jika perlu">
+                </div>
+                <button onclick="submitAbsensi()" class="btn btn-success">Submit Absensi</button>
+                <button onclick="logout()" class="btn btn-danger" style="margin-left: 10px;">Logout</button>
+            </div>
+
+            <div id="absensiAlert"></div>
+        </div>
+
+        <div id="admin" class="tab-content">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalStudents">0</div>
+                    <div class="stat-label">Total Mahasiswa</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="presentToday">0</div>
+                    <div class="stat-label">Hadir Hari Ini</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="absentToday">0</div>
+                    <div class="stat-label">Tidak Hadir</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="attendanceRate">0%</div>
+                    <div class="stat-label">Tingkat Kehadiran</div>
+                </div>
+            </div>
+
+            <div class="export-section">
+                <h3>Export Data</h3>
+                <p>Export data absensi ke format Excel untuk analisis lebih lanjut</p>
+                <button onclick="exportToExcel()" class="btn">📊 Export to Excel</button>
+                <button onclick="clearData()" class="btn btn-danger" style="margin-left: 10px;">🗑️ Clear All Data</button>
+            </div>
+
+            <div class="attendance-table-container">
+                <h3>Data Absensi Terkini</h3>
+                <table class="attendance-table">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>NIM</th>
+                            <th>Nama</th>
+                            <th>Mata Kuliah</th>
+                            <th>Waktu Absensi</th>
+                            <th>Status</th>
+                            <th>Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // Data storage (in real app, this would be a database)
+        let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || [];
+        let currentUser = null;
+
+        // Daftar mahasiswa Sireg C (bisa ditambah sesuai kebutuhan)
+        const studentList = [
+            { nim: '20230001', nama: 'Ahmad Rizky Pratama' },
+            { nim: '20230002', nama: 'Siti Nurhaliza' },
+            { nim: '20230003', nama: 'Budi Santoso' },
+            { nim: '20230004', nama: 'Dewi Sartika' },
+            { nim: '20230005', nama: 'Eko Prasetyo' },
+            { nim: '20230006', nama: 'Fitri Handayani' },
+            { nim: '20230007', nama: 'Guntur Wijaya' },
+            { nim: '20230008', nama: 'Hani Ramadhani' },
+            { nim: '20230009', nama: 'Indra Kusuma' },
+            { nim: '20230010', nama: 'Jihan Aulia' }
+        ];
+
+        // Update time display
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('id-ID', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            
+            document.getElementById('currentTime').innerHTML = `<strong>${timeString}</strong>`;
+            document.getElementById('absensiTime').innerHTML = `<strong>${timeString}</strong>`;
+        }
+
+        // Show/hide tabs
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            // Update admin statistics when admin tab is opened
+            if (tabName === 'admin') {
+                updateAdminStats();
+                updateAttendanceTable();
+            }
+        }
+
+        // Show alert message
+        function showAlert(elementId, message, type = 'success') {
+            const alertElement = document.getElementById(elementId);
+            alertElement.innerHTML = `
+                <div class="alert alert-${type}">
+                    ${message}
+                </div>
+            `;
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                alertElement.innerHTML = '';
+            }, 5000);
+        }
+
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nim = document.getElementById('nim').value;
+            const nama = document.getElementById('nama').value;
+
+            // Validate student
+            const student = studentList.find(s => s.nim === nim && s.nama.toLowerCase() === nama.toLowerCase());
+            
+            if (student) {
+                currentUser = student;
+                document.getElementById('studentInfo').style.display = 'block';
+                showAlert('loginAlert', `Selamat datang, ${student.nama}! Silakan lakukan absensi.`, 'success');
+                
+                // Switch to absensi tab
+                showTab('absensi');
+            } else {
+                showAlert('loginAlert', 'NIM atau Nama tidak ditemukan. Pastikan data yang dimasukkan benar.', 'danger');
+            }
+        });
+
+        // Submit attendance
+        function submitAbsensi() {
+            if (!currentUser) {
+                showAlert('absensiAlert', 'Anda belum login!', 'danger');
+                return;
+            }
+
+            const matakuliah = document.getElementById('matakuliah').value;
+            const keterangan = document.getElementById('keterangan').value;
+
+            if (!matakuliah) {
+                showAlert('absensiAlert', 'Silakan pilih mata kuliah terlebih dahulu!', 'danger');
+                return;
+            }
+
+            // Check if already attended today for this subject
+            const today = new Date().toDateString();
+            const alreadyAttended = attendanceData.find(record => 
+                record.nim === currentUser.nim && 
+                record.matakuliah === matakuliah && 
+                new Date(record.timestamp).toDateString() === today
+            );
+
+            if (alreadyAttended) {
+                showAlert('absensiAlert', 'Anda sudah melakukan absensi untuk mata kuliah ini hari ini!', 'danger');
+                return;
+            }
+
+            // Add attendance record
+            const attendanceRecord = {
+                id: Date.now(),
+                nim: currentUser.nim,
+                nama: currentUser.nama,
+                matakuliah: matakuliah,
+                timestamp: new Date().toISOString(),
+                keterangan: keterangan || '-',
+                status: 'Hadir'
+            };
+
+            attendanceData.push(attendanceRecord);
+            localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+
+            showAlert('absensiAlert', `Absensi berhasil untuk mata kuliah ${matakuliah}!`, 'success');
+            
+            // Reset form
+            document.getElementById('matakuliah').value = '';
+            document.getElementById('keterangan').value = '';
+        }
+
+        // Logout function
+        function logout() {
+            currentUser = null;
+            document.getElementById('studentInfo').style.display = 'none';
+            document.getElementById('loginForm').reset();
+            showTab('login');
+            showAlert('loginAlert', 'Anda telah logout.', 'success');
+        }
+
+        // Update admin statistics
+        function updateAdminStats() {
+            const today = new Date().toDateString();
+            const todayAttendance = attendanceData.filter(record => 
+                new Date(record.timestamp).toDateString() === today
+            );
+
+            const uniqueStudentsToday = [...new Set(todayAttendance.map(record => record.nim))];
+            const totalStudents = studentList.length;
+            const presentToday = uniqueStudentsToday.length;
+            const absentToday = totalStudents - presentToday;
+            const attendanceRate = totalStudents > 0 ? Math.round((presentToday / totalStudents) * 100) : 0;
+
+            document.getElementById('totalStudents').textContent = totalStudents;
+            document.getElementById('presentToday').textContent = presentToday;
+            document.getElementById('absentToday').textContent = absentToday;
+            document.getElementById('attendanceRate').textContent = attendanceRate + '%';
+        }
+
+        // Update attendance table
+        function updateAttendanceTable() {
+            const tbody = document.getElementById('attendanceTableBody');
+            tbody.innerHTML = '';
+
+            if (attendanceData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #666;">Belum ada data absensi</td></tr>';
+                return;
+            }
+
+            // Sort by timestamp (newest first)
+            const sortedData = [...attendanceData].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            sortedData.forEach((record, index) => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${record.nim}</td>
+                    <td>${record.nama}</td>
+                    <td>${record.matakuliah}</td>
+                    <td>${new Date(record.timestamp).toLocaleString('id-ID')}</td>
+                    <td><span class="status-badge status-present">${record.status}</span></td>
+                    <td>${record.keterangan}</td>
+                `;
+            });
+        }
+
+        // Export to Excel
+        function exportToExcel() {
+            if (attendanceData.length === 0) {
+                alert('Tidak ada data untuk diexport!');
+                return;
+            }
+
+            // Prepare data for Excel
+            const excelData = attendanceData.map((record, index) => ({
+                'No': index + 1,
+                'NIM': record.nim,
+                'Nama': record.nama,
+                'Mata Kuliah': record.matakuliah,
+                'Tanggal': new Date(record.timestamp).toLocaleDateString('id-ID'),
+                'Waktu': new Date(record.timestamp).toLocaleTimeString('id-ID'),
+                'Status': record.status,
+                'Keterangan': record.keterangan
+            }));
+
+            // Create workbook and worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(excelData);
+
+            // Add styling (basic)
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let row = range.s.r; row <= range.e.r; row++) {
+                for (let col = range.s.c; col <= range.e.c; col++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+                    if (!ws[cellAddress]) continue;
+                    
+                    // Header row styling
+                    if (row === 0) {
+                        ws[cellAddress].s = {
+                            font: { bold: true },
+                            fill: { fgColor: { rgb: "4FACFE" } }
+                        };
+                    }
+                }
+            }
+
+            // Auto-width columns
+            const colWidths = [
+                { wch: 5 },  // No
+                { wch: 12 }, // NIM
+                { wch: 25 }, // Nama
+                { wch: 20 }, // Mata Kuliah
+                { wch: 15 }, // Tanggal
+                { wch: 12 }, // Waktu
+                { wch: 10 }, // Status
+                { wch: 20 }  // Keterangan
+            ];
+            ws['!cols'] = colWidths;
+
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Data Absensi');
+
+            // Generate filename with current date
+            const today = new Date();
+            const filename = `Absensi_SiregC_${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}.xlsx`;
+
+            // Save file
+            XLSX.writeFile(wb, filename);
+
+            showAlert('loginAlert', 'Data berhasil diexport ke Excel!', 'success');
+        }
+
+        // Clear all data
+        function clearData() {
+            if (confirm('Apakah Anda yakin ingin menghapus semua data absensi? Tindakan ini tidak dapat dibatalkan.')) {
+                attendanceData = [];
+                localStorage.removeItem('attendanceData');
+                updateAdminStats();
+                updateAttendanceTable();
+                alert('Semua data absensi telah dihapus.');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTime();
+            setInterval(updateTime, 1000);
+            updateAdminStats();
+            updateAttendanceTable();
+        });
+
+        // Add some sample data for demonstration
+        if (attendanceData.length === 0) {
+            const sampleData = [
+                {
+                    id: Date.now() - 86400000,
+                    nim: '20230001',
+                    nama: 'Ahmad Rizky Pratama',
+                    matakuliah: 'Pemrograman Web',
+                    timestamp: new Date(Date.now() - 86400000).toISOString(),
+                    keterangan: 'Tepat waktu',
+                    status: 'Hadir'
+                },
+                {
+                    id: Date.now() - 82800000,
+                    nim: '20230002',
+                    nama: 'Siti Nurhaliza',
+                    matakuliah: 'Pemrograman Web',
+                    timestamp: new Date(Date.now() - 82800000).toISOString(),
+                    keterangan: '-',
+                    status: 'Hadir'
+                }
+            ];
+            
+            // Only add sample data if localStorage is empty
+            if (!localStorage.getItem('attendanceData')) {
+                attendanceData = sampleData;
+                localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+            }
+        }
+    </script>
+</body>
+</html>
