@@ -72,5 +72,5 @@ Status: Mahasiswa Sistem Informasi
 Kampus: Universitas Sriwijaya
 
 📜 Lisensi
-Proyek ini bersifat open-source dan dapat dikembangkan lebih lanjut.
+Proyek ini bersifat open-source dan dapat dikembangkan lebih lanjut sesuai keinginan pribadi.
 Silakan gunakan, modifikasi, dan pelajari untuk keperluan pendidikan atau proyek pribadi.
