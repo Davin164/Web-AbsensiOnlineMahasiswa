@@ -8,7 +8,7 @@ Data absensi saat ini disimpan menggunakan **localStorage (array JavaScript)**, 
 ## 🚀 Fitur Utama
 
 - ✅ **Login Mahasiswa** menggunakan NIM & Nama
-- 🕒 **Menampilkan waktu real-time** pada halaman login dan absensi
+- 🕒 **Menampilkan waktu Secara real-time** pada halaman login dan absensi
 - 📝 **Absensi per mata kuliah** untuk mahasiswa
 - 💾 **Penyimpanan otomatis** data absensi ke localStorage browser
 - 📊 **Panel Admin** dengan statistik:
