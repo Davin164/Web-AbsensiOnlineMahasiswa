@@ -1,4 +1,4 @@
-# 🧑‍🎓 Sistem Absensi Mahasiswa Berbasis Web
+# 🧑‍🎓 Sistem Absensi Mahasiswa Berbasis Website
 
 Proyek ini merupakan **web absensi mahasiswa sederhana** yang dibangun menggunakan **HTML, CSS, dan JavaScript murni (native)** tanpa backend.  
 Data absensi saat ini disimpan menggunakan **localStorage (array JavaScript)**, namun struktur kodenya sudah disiapkan agar dapat dengan mudah diintegrasikan ke **database seperti MySQL atau API backend (misalnya dengan PHP atau Node.js)**.
