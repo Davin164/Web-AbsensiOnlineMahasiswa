@@ -50,7 +50,7 @@ Fitur-fitur berikut direncanakan untuk versi berikutnya:
 ## 📂 Struktur Folder
 /project-folder
 │
-├── index.html # Halaman utama web
+├── index.html # Halaman utama web (berisikan kode HTML dan JS
 ├── Style.css # File styling tampilan
 └── README.md # Dokumentasi proyek
 
