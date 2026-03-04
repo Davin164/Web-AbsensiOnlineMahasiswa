@@ -67,9 +67,9 @@ Fitur-fitur berikut direncanakan untuk versi berikutnya:
 
 🧑‍💻 Kontributor
 
+Mari Kenalan!
 Nama: Davin Gabriel J
-Status: Mahasiswa Sistem Informasi
-Kampus: Universitas Sriwijaya
+Github: Davin164
 
 📜 Lisensi
 Proyek ini bersifat open-source dan dapat dikembangkan lebih lanjut sesuai keinginan pribadi.
