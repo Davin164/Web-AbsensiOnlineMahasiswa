@@ -47,7 +47,7 @@ Fitur-fitur berikut direncanakan untuk versi berikutnya:
 
 ---
 
-## 📂 Struktur Folder
+## 📂 Struktur Folder Project
 /project-folder
 │
 ├── index.html # Halaman utama web (berisikan kode HTML dan JS
